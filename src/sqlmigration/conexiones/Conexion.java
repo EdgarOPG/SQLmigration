@@ -35,7 +35,7 @@ public class Conexion {
         try {
             Class.forName("oracle.jdbc.OracleDriver");
             con = DriverManager.getConnection(CONEXION, USUARIO, PASSWORD);
-            System.out.println("Connected");
+//            System.out.println("Connected");
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(Conexion.class.getName())
                   .log(Level.SEVERE, null, ex);
