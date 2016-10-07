@@ -23,10 +23,12 @@ public class Query {
     //TODO Con string format crear el create tables
     public static void main(String[] args) {
         Query q = new Query();
-        
+        String fields;
         for (int i = 0; i < q.getTablenames("HR").size(); i++) {
-            System.out.println(q.getTablenames("HR").get(i));
-            System.out.println(fieldsToQuery(q.getNameColums(q.getTablenames("HR").get(i))));
+            String tableName = q.getTablenames("HR").get(i);
+            String tableFields = fieldsToQuery(q.getNameColums(q.getTablenames("HR").get(i)));
+            String createInstruction = String.format("CREATE TABLE %s( %s );", tableName, tableFields);
+            System.out.println(createInstruction);
         }
     }
     
@@ -48,15 +50,35 @@ public List<String> getTablenames(String user){
 
 public List<String> getNameColums(String tablename){
     try {
-        ArrayList<String> columsList = new ArrayList<>();
+        List<String> columsList = new ArrayList<>();
         Statement st = Conexion.getInstance().getCon().createStatement();
-        ResultSet rs = st.executeQuery("SELECT column_name || ' ' "
-                                        + "|| DATA_TYPE || ' ' || NULLABLE "
+        String columnName = "";
+        String dataType = "";
+        String nullable = "";
+        String query = ""; 
+        Integer dataLength = 0;
+        ResultSet rs = st.executeQuery("SELECT column_name,"
+                                        + " DATA_TYPE, NULLABLE,"
+                                        + "DATA_LENGTH "
                                         + "FROM all_tab_cols "
                                         + "WHERE table_name = '"
                                         + tablename + "'");
         while (rs.next()) {
-            columsList.add(rs.getString(1));
+            columnName = rs.getString("COLUMN_NAME");
+            dataLength = rs.getInt("DATA_LENGTH");
+            if(rs.getString("DATA_TYPE").equals("NUMBER")) {
+                dataType = "INT";
+            }
+            if(rs.getString("DATA_TYPE").equals("VARCHAR2")) {
+                dataType = "VARCHAR("+ dataLength.toString() +")";
+            }
+            if(rs.getString("NULLABLE").equals("N")) {
+                nullable = "NOT NULL";
+            }else if (rs.getString("NULLABLE").equals("Y")) {
+                nullable = "";
+            }
+            query = String.format("%s %s %s", columnName, dataType, nullable);
+            columsList.add(query);
         }
         return columsList;
     } catch (SQLException ex) {
@@ -69,7 +91,7 @@ public List<String> getRows(String tablename){
     try {
         ArrayList<String> columsList = new ArrayList<>();
         Statement st = Conexion.getInstance().getCon().createStatement();
-        ResultSet rs = st.executeQuery("SELECT * FROM "+ tablename );
+        ResultSet rs = st.executeQuery("SELECT * FROM " + tablename );
         while (rs.next()) {
             columsList.add(rs.getString(1));
         }
@@ -85,9 +107,10 @@ public static String fieldsToQuery(List<String> fields) {
             List<String> fieldsList = fields;
             String [] fieldsArray = fieldsList.toArray(new String[fieldsList.size()]);
             for (String field : fieldsArray) {
-                campos = String.format("%s, %s", campos, field);   
+                campos = String.format("%s, %s", campos, field);
             }
             campos = campos.substring(1);
+            campos = campos.replace("VARCHAR2", "VARCHAR");
             return campos;
             }
 }
