@@ -68,9 +68,12 @@ public List<String> getNameColums(String tablename){
             dataLength = rs.getInt("DATA_LENGTH");
             if(rs.getString("DATA_TYPE").equals("NUMBER")) {
                 dataType = "INT";
-            }
-            if(rs.getString("DATA_TYPE").equals("VARCHAR2")) {
+            } else if(rs.getString("DATA_TYPE").equals("VARCHAR2")) {
                 dataType = "VARCHAR("+ dataLength.toString() +")";
+            } else if(rs.getString("DATA_TYPE").equals("CHAR")) {
+                dataType = "CHAR("+ dataLength.toString() +")";
+            } else {
+                dataType = rs.getString("DATA_TYPE");
             }
             if(rs.getString("NULLABLE").equals("N")) {
                 nullable = "NOT NULL";
