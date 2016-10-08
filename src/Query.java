@@ -3,6 +3,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import sqlmigration.conexiones.Conexion;
 
@@ -27,9 +28,10 @@ public class Query {
             String tableFields = fieldsToQuery(q.getNameColums(q.getTablenames("HR").get(i)));
             String createInstruction = String.format("CREATE TABLE %s( %s );", tableName, tableFields);
             System.out.println(createInstruction);
-            ArrayList arrayRows = q.getRows( q.getNameColums(tableName).size() ,tableName);  
-            for (int j = 0; j < arrayRows.size(); j++) {      
-                System.out.println(arrayRows);
+            ArrayList arrayRows = q.getRows(q.getNameColums(tableName).size() ,tableName); 
+            Iterator<List> iteratorRows = arrayRows.iterator();
+            while(iteratorRows.hasNext()){
+                System.out.println(iteratorRows.next());
             }
         }
     }
@@ -100,7 +102,8 @@ public ArrayList<List> getRows(Integer columnNumber, String tablename){
         Statement st = Conexion.getInstance().getCon().createStatement();
         ResultSet rs = st.executeQuery("SELECT * FROM " + tablename );
         String cell = "";
-        if (rs.next()) {
+        int j = 0;
+        while (rs.next()) {
             for (int i = 1; i <= columnNumber; i++) {
                 Object obj = rs.getObject(i);
                 if(obj == null){
@@ -113,7 +116,8 @@ public ArrayList<List> getRows(Integer columnNumber, String tablename){
                 }
                     rowList.add(cell);
             }
-            columnList.add(rowList);
+            columnList.add(j,rowList);
+            j++;
         }
         return columnList;
     } catch (SQLException ex) {
