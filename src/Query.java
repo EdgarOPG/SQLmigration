@@ -3,9 +3,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import static javafx.scene.input.KeyCode.T;
 import sqlmigration.conexiones.Conexion;
 
 /*
@@ -29,6 +27,8 @@ public class Query {
             String tableFields = fieldsToQuery(q.getNameColums(q.getTablenames("HR").get(i)));
             String createInstruction = String.format("CREATE TABLE %s( %s );", tableName, tableFields);
             System.out.println(createInstruction);
+            ArrayList arrayRows = q.getRows( q.getNameColums(tableName).size() ,tableName);        
+            System.out.println(arrayRows);
         }
     }
     
@@ -90,13 +90,22 @@ public List<String> getNameColums(String tablename){
     }
 }
 
-public List<String> getRows(String tablename){
+public ArrayList<String> getRows(Integer columnNumber, String tablename){
     try {
         ArrayList<String> columsList = new ArrayList<>();
         Statement st = Conexion.getInstance().getCon().createStatement();
         ResultSet rs = st.executeQuery("SELECT * FROM " + tablename );
-        while (rs.next()) {
-            columsList.add(rs.getString(1));
+        String cell = "";
+        if (rs.next()) {
+            for (int i = 1; i <= columnNumber; i++) {
+                Object obj = rs.getObject(i);
+                if(obj == null){
+                    cell = "NULL";
+                } else {
+                    cell = obj.toString();
+                }
+                    columsList.add(cell);
+            }
         }
         return columsList;
     } catch (SQLException ex) {
