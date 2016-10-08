@@ -25,13 +25,18 @@ public class Query {
         String fields;
         for (int i = 0; i < q.getTablenames("HR").size(); i++) {
             String tableName = q.getTablenames("HR").get(i);
-            String tableFields = fieldsToQuery(q.getNameColums(q.getTablenames("HR").get(i)));
-            String createInstruction = String.format("CREATE TABLE %s( %s );", tableName, tableFields);
-            System.out.println(createInstruction);
+            String tableFields = 
+                    fieldsToQuery(q.getNameColums(q.getTablenames("HR").get(i)));
+            String createInstructions = String.format("CREATE TABLE %s(%s);",
+                    tableName, tableFields);
+            System.out.println(createInstructions);
             ArrayList arrayRows = q.getRows(tableName); 
             Iterator<List> iteratorRows = arrayRows.iterator();
             while(iteratorRows.hasNext()){
-                System.out.println(iteratorRows.next());
+                String insertInstructions = 
+                        String.format("INSERT INTO %s VALUES(%s);",
+                                tableName, iteratorRows.next());
+                System.out.println(insertInstructions);
             }
         }
     }
@@ -113,8 +118,9 @@ public ArrayList<String> getRows(String tablename){
                 } else {
                     if(obj.getClass().getSimpleName().equals("String")) {
                         columnValue = String.format("'%s'", columnValue);
-                    } else if (obj.getClass().getSimpleName().equals("Date")) {
-                        columnValue = String.format("convert(datetime,'%s')", columnValue);
+                    } 
+                    else if (rs.getMetaData().getColumnTypeName(i).equals("DATE")) {
+                        columnValue = String.format("convert(datetime2,'%s')", columnValue);
                     }
                     cell = obj.toString();
                 }
