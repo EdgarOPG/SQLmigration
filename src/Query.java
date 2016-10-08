@@ -28,7 +28,7 @@ public class Query {
             String tableFields = fieldsToQuery(q.getNameColums(q.getTablenames("HR").get(i)));
             String createInstruction = String.format("CREATE TABLE %s( %s );", tableName, tableFields);
             System.out.println(createInstruction);
-            ArrayList arrayRows = q.getRows(q.getNameColums(tableName).size() ,tableName); 
+            ArrayList arrayRows = q.getRows(tableName); 
             Iterator<List> iteratorRows = arrayRows.iterator();
             while(iteratorRows.hasNext()){
                 System.out.println(iteratorRows.next());
@@ -95,29 +95,32 @@ public List<String> getNameColums(String tablename){
     }
 }
 
-public ArrayList<List> getRows(Integer columnNumber, String tablename){
+public ArrayList<String> getRows(String tablename){
     try {
-        List<String> rowList = new ArrayList<>();
-        ArrayList<List> columnList = new ArrayList<>();
         Statement st = Conexion.getInstance().getCon().createStatement();
         ResultSet rs = st.executeQuery("SELECT * FROM " + tablename );
+        ArrayList<String> columnList = new ArrayList<>();
         String cell = "";
         int j = 0;
         while (rs.next()) {
+            List<String> rowList = new ArrayList<>();
+            Integer columnNumber = rs.getMetaData().getColumnCount();
             for (int i = 1; i <= columnNumber; i++) {
-                Object obj = rs.getObject(i);
+            String columnValue = rs.getString(i);
+            Object obj = rs.getObject(i);
                 if(obj == null){
                     cell = "NULL";
                 } else {
                     if(obj.getClass().getSimpleName().equals("String")) {
-                        obj = String.format("'%s'", obj);
+                        columnValue = String.format("'%s'", columnValue);
+                    } else if (obj.getClass().getSimpleName().equals("Date")) {
+                        columnValue = String.format("convert(datetime,'%s')", columnValue);
                     }
                     cell = obj.toString();
                 }
-                    rowList.add(cell);
-            }
-            columnList.add(j,rowList);
-            j++;
+           rowList.add(columnValue);
+        }
+        columnList.add(fieldsToQuery(rowList));
         }
         return columnList;
     } catch (SQLException ex) {
