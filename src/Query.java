@@ -27,8 +27,10 @@ public class Query {
             String tableFields = fieldsToQuery(q.getNameColums(q.getTablenames("HR").get(i)));
             String createInstruction = String.format("CREATE TABLE %s( %s );", tableName, tableFields);
             System.out.println(createInstruction);
-            ArrayList arrayRows = q.getRows( q.getNameColums(tableName).size() ,tableName);        
-            System.out.println(arrayRows);
+            ArrayList arrayRows = q.getRows( q.getNameColums(tableName).size() ,tableName);  
+            for (int j = 0; j < arrayRows.size(); j++) {      
+                System.out.println(arrayRows);
+            }
         }
     }
     
@@ -58,11 +60,12 @@ public List<String> getNameColums(String tablename){
         String query = ""; 
         Integer dataLength = 0;
         ResultSet rs = st.executeQuery("SELECT column_name,"
-                                        + " DATA_TYPE, NULLABLE,"
+                                        + " data_type, nullable,"
                                         + "DATA_LENGTH "
                                         + "FROM all_tab_cols "
                                         + "WHERE table_name = '"
-                                        + tablename + "'");
+                                        + tablename + "' "
+                                        + "ORDER BY column_id");
         while (rs.next()) {
             columnName = rs.getString("COLUMN_NAME");
             dataLength = rs.getInt("DATA_LENGTH");
@@ -90,9 +93,10 @@ public List<String> getNameColums(String tablename){
     }
 }
 
-public ArrayList<String> getRows(Integer columnNumber, String tablename){
+public ArrayList<List> getRows(Integer columnNumber, String tablename){
     try {
-        ArrayList<String> columsList = new ArrayList<>();
+        List<String> rowList = new ArrayList<>();
+        ArrayList<List> columnList = new ArrayList<>();
         Statement st = Conexion.getInstance().getCon().createStatement();
         ResultSet rs = st.executeQuery("SELECT * FROM " + tablename );
         String cell = "";
@@ -102,12 +106,16 @@ public ArrayList<String> getRows(Integer columnNumber, String tablename){
                 if(obj == null){
                     cell = "NULL";
                 } else {
+                    if(obj.getClass().getSimpleName().equals("String")) {
+                        obj = String.format("'%s'", obj);
+                    }
                     cell = obj.toString();
                 }
-                    columsList.add(cell);
+                    rowList.add(cell);
             }
+            columnList.add(rowList);
         }
-        return columsList;
+        return columnList;
     } catch (SQLException ex) {
         System.out.println(ex);
         return null;
