@@ -17,10 +17,6 @@ import sqlmigration.conexiones.Conexion;
 public class Query {
     
     //TODO Con string format crear el create tables
-    public static void main(String[] args) {
-        Query q = new Query();
-        System.out.println(q.concatInstructions("HR"));
-    }
     
 public List<String> getTablenames(String user){
     try {
