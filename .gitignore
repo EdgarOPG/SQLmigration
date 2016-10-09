@@ -4,7 +4,13 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
-nbproyect/
+
 *.class
-nbproject/
-target/
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
