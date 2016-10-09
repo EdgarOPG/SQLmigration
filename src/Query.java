@@ -113,7 +113,6 @@ public static String fieldsToQuery(List<String> fields) {
                 campos = String.format("%s, %s", campos, field);
             }
             campos = campos.substring(1);
-            campos = campos.replace("VARCHAR2", "VARCHAR");
             return campos;
             }
 }
