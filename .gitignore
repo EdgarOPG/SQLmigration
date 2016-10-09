@@ -1,9 +1,10 @@
 nbproject/private/
-
+build/
+nbbuild/
 dist/
 nbdist/
 .nb-gradle/
-
+nbproyect/
 *.class
 nbproject/
 target/
