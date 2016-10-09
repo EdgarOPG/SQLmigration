@@ -7,7 +7,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import sqlmigration.conexiones.Conexion;
+import sqlmigration.conexiones.OracleConnection;
 
 
 /**
@@ -17,15 +17,16 @@ import sqlmigration.conexiones.Conexion;
 public class Query {
     
     //TODO Con string format crear el create tables
+    
     public static void main(String[] args) {
         Query q = new Query();
-        System.out.println(q.concatInstructions("HR"));
-    }
+        System.out.println(q.getConstraintList("EMPLOYEES"));
+    }   
     
 public List<String> getTablenames(String user){
     try {
         ArrayList<String> tablesnamesList = new ArrayList<>();
-        Statement st = Conexion.getInstance().getCon().createStatement();
+        Statement st = OracleConnection.getInstance().getCon().createStatement();
         ResultSet rs = st.executeQuery("SELECT table_name FROM all_all_tables "
                                         + "WHERE owner = '" + user + "'");
         while (rs.next()) {
@@ -41,7 +42,7 @@ public List<String> getTablenames(String user){
 public List<String> getNameColums(String tablename){
     try {
         List<String> columsList = new ArrayList<>();
-        Statement st = Conexion.getInstance().getCon().createStatement();
+        Statement st = OracleConnection.getInstance().getCon().createStatement();
         String columnName = "";
         String dataType = "";
         String nullable = "";
@@ -83,7 +84,7 @@ public List<String> getNameColums(String tablename){
 
 public ArrayList<String> getRows(String tablename){
     try {
-        Statement st = Conexion.getInstance().getCon().createStatement();
+        Statement st = OracleConnection.getInstance().getCon().createStatement();
         ResultSet rs = st.executeQuery("SELECT * FROM " + tablename );
         ArrayList<String> columnList = new ArrayList<>();
         String cell = "";
@@ -110,6 +111,44 @@ public ArrayList<String> getRows(String tablename){
         columnList.add(fieldsToQuery(rowList));
         }
         return columnList;
+    } catch (SQLException ex) {
+        System.out.println(ex);
+        return null;
+    }
+}
+
+public List<String> getConstraintList(String tableName){
+    try {
+        List<String> constraintList = new ArrayList<>();
+        Statement st = OracleConnection.getInstance().getCon().createStatement();
+        String constraintName = "";
+        String dataType = "";
+        String columnName = "";
+        String constraintType = "";
+        String query = ""; 
+        ResultSet rs = st.executeQuery("SELECT constraint_name, constraint_type, "
+                                        + "column_name " 
+                                        + "FROM user_constraints NATURAL JOIN "
+                                        + "user_cons_columns " 
+                                        + "WHERE table_name = 'JOBS'");
+        while (rs.next()) {
+            constraintName = rs.getString("CONSTRAINT_NAME");
+            constraintType = rs.getString("CONSTRAINT_TYPE");
+            columnName = rs.getString("COLUMN_NAME");
+            if(rs.getString("CONSTRAINT_TYPE").equals("P")) {
+                constraintType = "PRIMARY KEY";
+            } else if(rs.getString("CONSTRAINT_TYPE").equals("U")) {
+                constraintType = "UNIQUE";
+            } else if(rs.getString("CONSTRAINT_TYPE").equals("R")) {
+                constraintType = "";
+            } else if(rs.getString("CONSTRAINT_TYPE").equals("C")) {
+                constraintType = "";
+            }
+            query = String.format("ALTER TABLE %s ADD CONSTRAINT %s %s ;", 
+                        tableName, columnName, constraintType, constraintName);
+            constraintList.add(query);
+        }
+        return constraintList;
     } catch (SQLException ex) {
         System.out.println(ex);
         return null;
@@ -147,7 +186,7 @@ public static String concatInstructions(String tableSpace){
                                 tableName, iteratorRows.next());
                 insertRow = String.format("%s\n%s",insertRow,insertInstructions);
             }
-                blockScript = String.format("\n%s%s",createInstructions,insertRow);
+                blockScript = String.format("%s%s\n",createInstructions,insertRow);
                 script = String.format("%s\n%s", script, blockScript);
         }
     return script;

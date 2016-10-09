@@ -16,18 +16,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Conexion a base deda tos MYSQL que utuliza un singleton
+ * OracleConnection a base deda tos MYSQL que utuliza un singleton
  * @author Luis Antonio Ramirez Martinez
  */
-public class Conexion {
+public class OracleConnection {
     
     private final static String USUARIO = "hr";
     private final static String PASSWORD = "1234";
     private final static String CONEXION = "jdbc:oracle:thin:@localhost:1521:XE";
-    private static Conexion INSTANCE;
+    private static OracleConnection INSTANCE;
     private Connection con;
 
-    private Conexion() {
+    OracleConnection() {
         this.initConection();
     }
 
@@ -37,14 +37,14 @@ public class Conexion {
             con = DriverManager.getConnection(CONEXION, USUARIO, PASSWORD);
 //            System.out.println("Connected");
         } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(Conexion.class.getName())
+            Logger.getLogger(OracleConnection.class.getName())
                   .log(Level.SEVERE, null, ex);
         }
     }
 
-    public static Conexion getInstance() {
+    public static OracleConnection getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new Conexion();
+            INSTANCE = new OracleConnection();
         }
         return INSTANCE;
     }
