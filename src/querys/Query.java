@@ -1,3 +1,5 @@
+package querys;
+
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,23 +19,7 @@ public class Query {
     //TODO Con string format crear el create tables
     public static void main(String[] args) {
         Query q = new Query();
-        String fields;
-        for (int i = 0; i < q.getTablenames("HR").size(); i++) {
-            String tableName = q.getTablenames("HR").get(i);
-            String tableFields = 
-                    fieldsToQuery(q.getNameColums(q.getTablenames("HR").get(i)));
-            String createInstructions = String.format("CREATE TABLE %s(%s);",
-                    tableName, tableFields);
-            System.out.println(createInstructions);
-            ArrayList arrayRows = q.getRows(tableName); 
-            Iterator<List> iteratorRows = arrayRows.iterator();
-            while(iteratorRows.hasNext()){
-                String insertInstructions = 
-                        String.format("INSERT INTO %s VALUES(%s);",
-                                tableName, iteratorRows.next());
-                System.out.println(insertInstructions);
-            }
-        }
+        System.out.println(q.concatInstructions("HR"));
     }
     
 public List<String> getTablenames(String user){
@@ -140,4 +126,31 @@ public static String fieldsToQuery(List<String> fields) {
             campos = campos.substring(1);
             return campos;
             }
+
+public static String concatInstructions(String tableSpace){
+        Query q = new Query();
+        String script = "";
+        for (int i = 0; i < q.getTablenames(tableSpace).size(); i++) {
+            String tableName = q.getTablenames(tableSpace).get(i);
+            String tableFields = 
+                    fieldsToQuery(q.getNameColums(q.getTablenames(tableSpace).get(i)));
+            String createInstructions = String.format("CREATE TABLE %s(%s);",
+                    tableName, tableFields);
+            String insertRow = "";
+            String blockScript = "";
+            ArrayList arrayRows = q.getRows(tableName); 
+            Iterator<List> iteratorRows = arrayRows.iterator();
+            while(iteratorRows.hasNext()){
+                String insertInstructions = "";
+                insertInstructions = 
+                        String.format("INSERT INTO %s VALUES(%s);",
+                                tableName, iteratorRows.next());
+                insertRow = String.format("%s\n%s",insertRow,insertInstructions);
+            }
+                blockScript = String.format("\n%s%s",createInstructions,insertRow);
+                script = String.format("%s\n%s", script, blockScript);
+        }
+    return script;
+}
+
 }
