@@ -3,16 +3,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
-import static javafx.scene.input.KeyCode.T;
 import sqlmigration.conexiones.Conexion;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 /**
  *
@@ -26,9 +20,19 @@ public class Query {
         String fields;
         for (int i = 0; i < q.getTablenames("HR").size(); i++) {
             String tableName = q.getTablenames("HR").get(i);
-            String tableFields = fieldsToQuery(q.getNameColums(q.getTablenames("HR").get(i)));
-            String createInstruction = String.format("CREATE TABLE %s( %s );", tableName, tableFields);
-            System.out.println(createInstruction);
+            String tableFields = 
+                    fieldsToQuery(q.getNameColums(q.getTablenames("HR").get(i)));
+            String createInstructions = String.format("CREATE TABLE %s(%s);",
+                    tableName, tableFields);
+            System.out.println(createInstructions);
+            ArrayList arrayRows = q.getRows(tableName); 
+            Iterator<List> iteratorRows = arrayRows.iterator();
+            while(iteratorRows.hasNext()){
+                String insertInstructions = 
+                        String.format("INSERT INTO %s VALUES(%s);",
+                                tableName, iteratorRows.next());
+                System.out.println(insertInstructions);
+            }
         }
     }
     
@@ -58,11 +62,12 @@ public List<String> getNameColums(String tablename){
         String query = ""; 
         Integer dataLength = 0;
         ResultSet rs = st.executeQuery("SELECT column_name,"
-                                        + " DATA_TYPE, NULLABLE,"
+                                        + " data_type, nullable,"
                                         + "DATA_LENGTH "
                                         + "FROM all_tab_cols "
                                         + "WHERE table_name = '"
-                                        + tablename + "'");
+                                        + tablename + "' "
+                                        + "ORDER BY column_id");
         while (rs.next()) {
             columnName = rs.getString("COLUMN_NAME");
             dataLength = rs.getInt("DATA_LENGTH");
@@ -90,15 +95,35 @@ public List<String> getNameColums(String tablename){
     }
 }
 
-public List<String> getRows(String tablename){
+public ArrayList<String> getRows(String tablename){
     try {
-        ArrayList<String> columsList = new ArrayList<>();
         Statement st = Conexion.getInstance().getCon().createStatement();
         ResultSet rs = st.executeQuery("SELECT * FROM " + tablename );
+        ArrayList<String> columnList = new ArrayList<>();
+        String cell = "";
+        int j = 0;
         while (rs.next()) {
-            columsList.add(rs.getString(1));
+            List<String> rowList = new ArrayList<>();
+            Integer columnNumber = rs.getMetaData().getColumnCount();
+            for (int i = 1; i <= columnNumber; i++) {
+            String columnValue = rs.getString(i);
+            Object obj = rs.getObject(i);
+                if(obj == null){
+                    cell = "NULL";
+                } else {
+                    if(obj.getClass().getSimpleName().equals("String")) {
+                        columnValue = String.format("'%s'", columnValue);
+                    } 
+                    else if (rs.getMetaData().getColumnTypeName(i).equals("DATE")) {
+                        columnValue = String.format("convert(datetime2,'%s')", columnValue);
+                    }
+                    cell = obj.toString();
+                }
+           rowList.add(columnValue);
         }
-        return columsList;
+        columnList.add(fieldsToQuery(rowList));
+        }
+        return columnList;
     } catch (SQLException ex) {
         System.out.println(ex);
         return null;
