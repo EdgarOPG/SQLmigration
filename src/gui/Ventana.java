@@ -9,7 +9,7 @@ import querys.Query;
 
 /**
  *
- * @author kryst
+ * @author kryst97
  */
 public class Ventana extends javax.swing.JFrame {
 
