@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 public class Conexion {
     
     private final static String USUARIO = "hr";
-    private final static String PASSWORD = "hr";
+    private final static String PASSWORD = "1234";
     private final static String CONEXION = "jdbc:oracle:thin:@localhost:1521:XE";
     private static Conexion INSTANCE;
     private Connection con;
