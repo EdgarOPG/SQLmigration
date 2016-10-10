@@ -2,11 +2,11 @@ package sqlmigration.conexiones;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.sql.*;
-import com.microsoft.sqlserver.jdbc.*;
 
 /**
  *
@@ -14,27 +14,35 @@ import com.microsoft.sqlserver.jdbc.*;
  */
 public class SQLDatabaseConnection {
 
-    public static Connection getSqlServerConnection() {
-        String connectionString
-                = "jdbc:sqlserver://yourserver.database.windows.net:1433;"
-                + "database=hr"
-                + "user=krystel;"
-                + "password=1234"
-                + "encrypt=true;"
-                + "trustServerCertificate=false;"
-                + "hostNameInCertificate=*.database.windows.net;"
-                + "loginTimeout=30;";
-
-        // Declare the JDBC objects.  
+    private static Connection getSqlServerConnection() {
         Connection connection = null;
-
         try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            String connectionString
+                    = "jdbc:sqlserver://localhost:1433;"
+                    + "database=hr;"
+                    + "user=krys;"
+                    + "password=1234;"
+                    + "loginTimeout=5;";
+            
             connection = DriverManager.getConnection(connectionString);
 
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(SQLDatabaseConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
         return connection;
 
+    }
+
+    public static ResultSet makeSqlServerQuery(String sql) {
+        ResultSet rs = null;
+        try {
+            Statement stmt = getSqlServerConnection().createStatement();
+            rs = stmt.executeQuery(sql);
+
+        } catch (SQLException ex) {
+            Logger.getLogger(SQLDatabaseConnection.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return rs;
     }
 }
